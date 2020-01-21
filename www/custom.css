@@ -1,0 +1,13 @@
+.main-header .logo {
+  font-family: "Georgia", Times, "Times New Roman", serif;
+  font-weight: bold;
+  font-size: 24px;
+}
+
+td[data-type="factor"] input {
+    width: 50px !important;
+}
+
+a {
+  color: #de2d26;
+}
