@@ -13,9 +13,10 @@ dashboardPage(
                 class = "dropdown")
     ),
     
+    # Removed sidebarUserPanel because it didn't play well with Leaflet. Possible futher work to reintroduce?
+    
     dashboardSidebar(
         sidebarMenu(id = "sidebar",
-                    menuItem("Home", tabName = "home"),
                     menuItem("Global Terrorism", tabName = "terrorism"),
                     shiny::conditionalPanel(condition="input.sidebar == 'terrorism'",   #Only display dropdown when terrorism tab is selected
                                             sliderInput("terrorismAttackYears",
@@ -32,22 +33,24 @@ dashboardPage(
                                             ),
                     menuItem("Volatility & the Stock Market", tabName = "volatilitystocks"),
                     menuItem("Terrorism & Volatility", tabName = "terrorvolatility"),
-                    menuItem("Data", tabName = "data")
+                    menuItem("Data", tabName = "data"),
+                    menuItem("About", tabName = "about")
                     )
     ),
     
     dashboardBody(
         tags$style(type = "text/css", "#terrorismmap {height: calc(100vh - 80px) !important;}"),
         tabItems(
-            tabItem(tabName = "home"),
+            
+            # Tab containing a visualization of global terrorism events from 1990 to 2017
             tabItem(tabName = "terrorism",
                     fluidRow(
                         leafletOutput("terrorismmap")
                     )),
+            
+            # Tab containing a visualization of the S&P500 and VIX indices from 1990 to 2020 as well as
+            # a basic visualization of the relationship between the two indices
             tabItem(tabName = "volatilitystocks",
-                    tabsetPanel(
-                        tabPanel(
-                            "Visualization",
                             fluidRow(column(
                                 12,
                                 align = "center",
@@ -62,9 +65,11 @@ dashboardPage(
                                 htmlOutput("vix_vs_sandp_scatter")
                             ))
                         ),
-                        tabPanel("Statistical Analysis")
-                    )),
+            
+            # Tab containing visualizations of how different terroism events affect the VIX index
             tabItem(tabName = "terrorvolatility"),
+            
+            # Tab containing a tab panel for each of the three datasets used in the project
             tabItem(tabName = "data",
                     tabsetPanel(
                         tabPanel("Global Terrorism Events",
@@ -80,9 +85,47 @@ dashboardPage(
                         tabPanel("VIX Volatility Index",
                                  fluidRow(
                                      box(DT::dataTableOutput("vixdatatable"), width = 12)
+                                     )
                                  )
                         )
-                        ))
+                    ),
+            
+            # Tab containing information about the project and myself
+            tabItem(tabName = "about",
+                    tabsetPanel(
+                        tabPanel("About the Project"),
+                        tabPanel("About the Author",
+                                 box(width = 12,
+                                     fluidRow(
+                                         column(4, align = "center", 
+                                                tags$img(src = "Me.jpg",
+                                                        width = "50%",
+                                                        style="border-radius: 50%")
+                                                ),
+                                         column(
+                                             8,
+                                             align = "center",
+                                             tagList(
+                                                 tags$h4("About the Author"),
+                                                 tags$br(),
+                                                 "Christian Opperman is a data scientist and analyst based in New York City.
+                               Originally from South Africa, he was raised in the Bay Area, California, and after
+                               college lived in Tokyo, Japan, working in the energy sector, for a number of years
+                               before moving back to the U.S.",
+                                                 tags$br(),
+                                                 tags$br(),
+                                                 "Please feel free to explore Christian's ",
+                                                 tags$a("GitHub Account", href = "https://github.com/christianopperman"),
+                                                 "or ",
+                                                 tags$a("LinkedIn Profile", href = "https://www.linkedin.com/in/christian-opperman/"),
+                                                 "."
+                                             )
+                                             )
+                                         )
+                                     )
+                                 )
+                        )
+                    )
+            )
         )
     )
-)
