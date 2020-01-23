@@ -32,14 +32,15 @@ function(input, output){
       numvar = "value",
       idvar = "market",
       options=list(width = "98%",
-                   scaleColumns='[0,1]',
-                   scaleType='allmaximized')
+                   scaleColumns = '[0,1]',
+                   scaleType = 'allmaximized')
     )
   })
   
   output$vix_vs_sandp_scatter = renderGvis({
     gvisScatterChart(data = select(stockmarket_by_year_db, vix_price_change, sandp_price_change),
                      options = list(
+                       fontName = "Georgia",
                        tooltip = "{trigger: 'selection'}",
                        hAxis = "{title: 'Daily Δ in VIX Closing Price',
                                  viewWindowMode: 'maximized'}",
