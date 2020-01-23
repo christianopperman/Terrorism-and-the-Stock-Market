@@ -56,4 +56,30 @@ function(input, output){
                      )
   })
   
+  ########Data Tab########
+  
+  #Output data tables with filters to increase ease of searching
+  output$terrorismdatatable = DT::renderDT(terror_db %>% select(., 
+                                                           Date = date, 
+                                                           Country = country, 
+                                                           Region = region, 
+                                                           "Province/State" = provstate,
+                                                           City = city,
+                                                           "Attack Type" = attacktype,
+                                                           "Weapon Type" = weapontype,
+                                                           Target = targettype,
+                                                           Perpetrator = perpname,
+                                                           Killed = nkill,
+                                                           Wounded = nwound), 
+                                            filter = list(position = "top", clear = FALSE, plain = FALSE),
+                                            options = list(pageLength = 10))
+  
+  output$sandp500datatable = DT::renderDT(vix_sandp_db %>% select(., date, sandp_close, sandp_price_change),
+                                           filter = list(position = "top", clear = FALSE, plain = FALSE),
+                                           options = list(pageLength = 10))
+  
+  output$vixdatatable = DT::renderDT(vix_sandp_db %>% select(., date, vix_close, vix_price_change),
+                                          filter = list(position = "top", clear = FALSE, plain = FALSE),
+                                          options = list(pageLength = 10))
+    
 }

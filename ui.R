@@ -17,7 +17,7 @@ dashboardPage(
         sidebarMenu(id = "sidebar",
                     menuItem("Home", tabName = "home"),
                     menuItem("Global Terrorism", tabName = "terrorism"),
-                    shiny::conditionalPanel(condition="input.sidebar == 'terrorism'",   #Only display dropdown  when Graphs tab is selected
+                    shiny::conditionalPanel(condition="input.sidebar == 'terrorism'",   #Only display dropdown when terrorism tab is selected
                                             sliderInput("terrorismAttackYears",
                                                         label = "Year Range:",
                                                         min = 1990, max = 2017,
@@ -65,7 +65,24 @@ dashboardPage(
                         tabPanel("Statistical Analysis")
                     )),
             tabItem(tabName = "terrorvolatility"),
-            tabItem(tabName = "data")
+            tabItem(tabName = "data",
+                    tabsetPanel(
+                        tabPanel("Global Terrorism Events",
+                                 fluidRow(
+                                     box(DT::dataTableOutput("terrorismdatatable"), width = 12)
+                                     )
+                                 ),
+                        tabPanel("S&P 500",
+                                 fluidRow(
+                                     box(DT::dataTableOutput("sandp500datatable"), width = 12)
+                                     )
+                                 ),
+                        tabPanel("VIX Volatility Index",
+                                 fluidRow(
+                                     box(DT::dataTableOutput("vixdatatable"), width = 12)
+                                 )
+                        )
+                        ))
         )
     )
 )
