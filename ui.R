@@ -17,8 +17,8 @@ dashboardPage(
     
     dashboardSidebar(
         sidebarMenu(id = "sidebar",
-                    menuItem("Global Terrorism", tabName = "terrorism"),
-                    shiny::conditionalPanel(condition="input.sidebar == 'terrorism'",   #Only display dropdown when terrorism tab is selected
+                    menuItem("Global Terrorism", tabName = "terrorism", icon=icon("fire", lib = "glyphicon")),
+                    shiny::conditionalPanel(condition="input.sidebar == 'terrorism' & input.tabset == 'Map'",   #Only display dropdown when terrorism tab is selected
                                             sliderInput("terrorismAttackYears",
                                                         label = "Year Range:",
                                                         min = 1990, max = 2017,
@@ -31,26 +31,70 @@ dashboardPage(
                                                                selected = unique(terror_db$attacktype)
                                                                )
                                             ),
-                    menuItem("Volatility & the Stock Market", tabName = "volatilitystocks"),
-                    menuItem("Terrorism & Volatility", tabName = "terrorvolatility"),
-                    menuItem("Data", tabName = "data"),
-                    menuItem("About", tabName = "about")
+                    menuItem("Volatility & the Stock Market", tabName = "volatilitystocks", icon=icon("sort", lib = "glyphicon")),
+                    menuItem("Terrorism & Volatility", tabName = "terrorvolatility", icon=icon("screenshot", lib = "glyphicon")),
+                    menuItem("Data", tabName = "data", icon=icon("th", lib = "glyphicon")),
+                    menuItem("About", tabName = "about", icon=icon("plus", lib = "glyphicon"))
                     )
     ),
     
     dashboardBody(
-        #Add custom CSS styling  ###CUSTOM SHEET LINK DOES NOT SEEM TO WORK - CONFIRM WITH SOMEONE?
+        #Add custom CSS styling
         tags$head(
             tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
             tags$style(type = "text/css", "#terrorismmap {height: calc(100vh - 100px) !important;}")
             ),
         tabItems(
             
-            # Tab containing a visualization of global terrorism events from 1990 to 2017
+            # Tab containing a visualization of global terrorism events from 1990 to 2017 as well as 
+            # graphs visualizing information about the events themselves
             tabItem(tabName = "terrorism",
-                    fluidRow(
-                        leafletOutput("terrorismmap")
-                    )),
+                tabsetPanel(id = "tabset",
+                    tabPanel("Map",  icon = icon("globe"),
+                             fluidRow(leafletOutput("terrorismmap"))
+                             ),
+                    tabPanel("Graphs: Total", icon = icon("chart-line"),
+                             box(width = 12,
+                                 fluidRow(
+                                     column(width = 12, infoBoxOutput("maxBox", width = NULL))),
+                                 fluidRow(
+                                     column(12, align = "center",
+                                            tags$h4("Types of Attack: Total"),
+                                            htmlOutput("attacktypebarchart"))),
+                                 fluidRow(
+                                     column(12, align = "center",
+                                            tags$br(),
+                                            tags$h4("Attacks by Region: Total"),
+                                            htmlOutput("attackregionbarchart"))),
+                                 fluidRow(
+                                     column(12, align = "center",
+                                            tags$br(),
+                                            tags$h4("Targets of Attacks: Total"),
+                                            htmlOutput("attacktargetsbarchart")))
+                                 )
+                             ),
+                    tabPanel("Graphs: Yearly", icon = icon("chart-line"),
+                             box(width = 12,
+                                 fluidRow(
+                                      column(width = 12, infoBoxOutput("avgBox", width = NULL))),
+                                 fluidRow(
+                                     column(12, align = "center",
+                                            tags$h4("Attacks by Region: Yearly"),
+                                            htmlOutput("yearlyattacktypelinechart"))),
+                                 fluidRow(
+                                     column(12, align = "center",
+                                            tags$br(),
+                                            tags$h4("Attacks by Region: Yearly"),
+                                            htmlOutput("yearlyattackregionlinechart"))),
+                                 fluidRow(
+                                     column(12, align = "center",
+                                            tags$br(),
+                                            tags$h4("Targets of Attacks: Yearly"),
+                                            htmlOutput("yearlyattacktargetslinechart")))
+                                 )
+                             )
+                    )
+                ),
             
             # Tab containing a visualization of the S&P500 and VIX indices from 1990 to 2020 as well as
             # a basic visualization of the relationship between the two indices
@@ -100,33 +144,39 @@ dashboardPage(
                         tabPanel("About the Project",
                                  box(width = 12,
                                      fluidRow(
-                                         column(width = 6, offset = 3, align = "center",
+                                         column(width = 6, offset = 3,
                                                 tagList(
-                                                    tags$h4("About the Project"),
+                                                    tags$h4("About the Project", align = "center"),
+                                                    "This project aims to visualize global terrorism events and those
+                                                    events' impacts on the US stock market, as represented by the S&P 
+                                                    500 index. Of particular interest is whether the region and/or type 
+                                                    of event affects the stock market in different ways.",
                                                     tags$br(),
-                                                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do 
-                                                    eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim 
-                                                    ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
-                                                    aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit 
-                                                    in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur 
-                                                    sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt 
-                                                    mollit anim id est laborum.",
+                                                    tags$br(),
+                                                    "The underlying logic is that terror events effect changes to the VIX 
+                                                    volatility index, which are in turn negatively correlated with changes 
+                                                    in the S&P 500.",
+                                                    tags$br(),
                                                     tags$br(),
                                                     tags$br(),
                                                 ))
                                          ),
                                      fluidRow(
-                                         column(width = 6, offset = 3, align = "center",
+                                         column(width = 6, offset = 3,
                                                 tagList(
-                                                    tags$h4("About the Data"),
+                                                    tags$h4("About the Data", align = "center"),
+                                                    "Data on terrorism events was sourced from the Global Terrorism Database 
+                                                    (GTD), which covers the years 1970 to 2017, with the exception of 1993; 
+                                                    that data can be found ",
+                                                    tags$a("here.", href = "https://www.kaggle.com/START-UMD/gtd"),
                                                     tags$br(),
-                                                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do 
-                                                    eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim 
-                                                    ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
-                                                    aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit 
-                                                    in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur 
-                                                    sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt 
-                                                    mollit anim id est laborum."
+                                                    tags$br(),
+                                                    "The GTD data was reduced to cover the period 
+                                                    between 1990 and 2017, in order to line up with the ",
+                                                    tags$a("VIX Volatility Index ", href = "https://finance.yahoo.com/quote/%5EVIX?p=^VIX&.tsrc=fin-srch"),
+                                                    "data and ",
+                                                    tags$a("S&P 500 Index ", href = "https://finance.yahoo.com/quote/%5EGSPC?p=^GSPC&.tsrc=fin-srch"),
+                                                    "data sourced from Yahoo Finance."
                                                 ))
                                          )
                                      )
