@@ -45,7 +45,6 @@ dashboardPage(
             tags$style(type = "text/css", "#terrorismmap {height: calc(100vh - 100px) !important;}")
             ),
         tabItems(
-            
             # Tab containing a visualization of global terrorism events from 1990 to 2017 as well as 
             # graphs visualizing information about the events themselves
             tabItem(tabName = "terrorism",
@@ -105,23 +104,35 @@ dashboardPage(
             # Tab containing a visualization of the S&P500 and VIX indices from 1990 to 2020 as well as
             # a basic visualization of the relationship between the two indices
             tabItem(tabName = "volatilitystocks",
-                            fluidRow(column(
-                                12,
-                                align = "center",
-                                tags$h4("VIX Volatility Index and S&P500 Time Series"),
-                                htmlOutput("vix_sandp_graph")
+                            fluidRow(
+                                box(width = 12, title = "VIX Volatility Index and S&P500 Time Series", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                    column(12, align = "center", htmlOutput("vix_sandp_graph"))
                             )),
-                            tags$br(),
-                            fluidRow(column(
-                                12,
-                                align = "center",
-                                tags$h4("VIX Volatility Index vs. S&P500"),
-                                htmlOutput("vix_vs_sandp_scatter")
+                            fluidRow(
+                                box(width = 12, title = "VIX Volatility Index vs S&P500", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                    column(12, align = "center", htmlOutput("vix_vs_sandp_scatter"))
                             ))
                         ),
             
             # Tab containing visualizations of how different terroism events affect the VIX index
-            tabItem(tabName = "terrorvolatility"),
+            tabItem(tabName = "terrorvolatility",
+                    fluidRow(
+                        box(width = 12, title = "Average Stock Movement Driven by Terrorism", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                            column(12, align = "center", htmlOutput("avgstockmovement"))
+                    )),
+                    fluidRow(
+                        box(width = 12, title = "Average Stock Movement Driven by Terrorism (by Region)", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                            column(12, align = "center", htmlOutput("avgstockmovementbyregion"))
+                        )),
+                    fluidRow(
+                        box(width = 12, title = "Average Stock Movement Driven by Terrorism (by Attack Type)", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                            column(12, align = "center", htmlOutput("avgstockmovementbyattacktype"))
+                        )),
+                    fluidRow(
+                        box(width = 12, title = "Average Stock Movement Driven by Terrorism (by Target Type)", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                            column(12, align = "center", htmlOutput("avgstockmovementbytargettype"))
+                        )),
+                    ),
             
             # Tab containing a tab panel for each of the three datasets used in the project
             tabItem(tabName = "data",

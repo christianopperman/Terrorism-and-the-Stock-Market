@@ -26,7 +26,7 @@ function(input, output){
       # Info Box showing country with most attacks
       output$maxBox = renderInfoBox({
         max_country = terror_db %>% group_by(., country) %>% summarise(., Total=n()) %>% arrange(., desc(Total)) %>% top_n(., 1)
-        valueBox(subtitle = paste("Country with Most Attacks (", max_country[[2]]," attacks total)", sep =""),
+        valueBox(subtitle = paste("Country with Most Attacks (", format(max_country[[2]], big.mark = ",")," attacks total)", sep =""),
                  value = tags$h3(max_country[[1]], style = "font-family: 'Georgia', 'Times', 'Times New Roman'"), 
                  color = "black", icon = icon("long-arrow-alt-up")
         )
@@ -65,13 +65,12 @@ function(input, output){
                                        hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
       })
       
-      
     ##Yearly Attacks Tab in Graphs
       #Info Box showing average yearly attacks
       output$avgBox = renderInfoBox({
         avg_attacks = terror_db %>% group_by(., year(date)) %>% summarise(., Total = n())
         valueBox(subtitle = "Average Attacks per Year",
-                 value = tags$h3(round(mean(avg_attacks[[2]], na.rm = T),0), 
+                 value = tags$h3(format(round(mean(avg_attacks[[2]], na.rm = T),0), big.mark = ","),
                                  style = "font-family: 'Georgia', 'Times', 'Times New Roman'"), 
                  color = "black", icon = icon("balance-scale") 
         )
@@ -127,9 +126,9 @@ function(input, output){
 
     ##Casualties Tab in Graphs
       output$avgCasualtyBox = renderInfoBox({
-        avg_casualties = terror_db %>% group_by(., year(date)) %>% summarise(., Casualties = sum(nkill, nwound, na.rm=T))
+        avg_casualties = terror_db %>% group_by(., year(date)) %>% summarise(., Casualties = sum(nkill , na.rm=T))
         valueBox(subtitle = "Average Killed or Wounded per Year",
-                 value = tags$h3(round(mean(avg_casualties[[2]], na.rm = T),0), 
+                 value = tags$h3(format(round(mean(avg_casualties[[2]], na.rm = T),0), big.mark = ","), 
                                  style = "font-family: 'Georgia', 'Times', 'Times New Roman'"), 
                  color = "black", icon = icon("balance-scale") 
         )
@@ -183,7 +182,47 @@ function(input, output){
   
   
   ########Volatility & the Stock Market Tab########
+      #Graph showing average change in VIX and S&P500 Indices on a day where the market is open and there is a terrorist attack
+      average_stock_movement = terror_db %>% 
+        summarise(., "VIX" = mean(vix_price_change, na.rm = T), "S&P" = mean(sandp_price_change, na.rm = T)) %>% 
+        gather(.) %>% 
+        rename(., Type = key, "Average Change" = value)
+      
+      output$avgstockmovement = renderGvis({
+        gvisColumnChart(average_stock_movement, xvar = "Type", yvar = "Average Change")
+      })
   
+      #Graph showing average change by region in VIX and S&P500 Indices on a day where the market is open and there is a terrorist attack
+      average_stock_movement_region = terror_db %>% 
+        group_by(., region) %>% 
+        summarise(., "VIX" = mean(vix_price_change, na.rm = T), "S&P" = mean(sandp_price_change, na.rm = T))
+      
+      output$avgstockmovementbyregion = renderGvis({
+        gvisColumnChart(average_stock_movement_region, xvar = "region", yvar = c("VIX", "S&P"),
+                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
+      })
+      
+      #Graph showing average change by attack type in VIX and S&P500 Indices on a day where the market is open and there is a terrorist attack
+      average_stock_movement_attack = terror_db %>% 
+        group_by(., attacktype) %>% 
+        summarise(., "VIX" = mean(vix_price_change, na.rm = T), "S&P" = mean(sandp_price_change, na.rm = T))
+      
+      output$avgstockmovementbyattacktype = renderGvis({
+        gvisColumnChart(average_stock_movement_attack, xvar = "attacktype", yvar = c("VIX", "S&P"),
+                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
+      })
+      
+      #Graph showing average change by target type in VIX and S&P500 Indices on a day where the market is open and there is a terrorist attack
+      average_stock_movement_target = terror_db %>% 
+        group_by(., targettype) %>% 
+        summarise(., "VIX" = mean(vix_price_change, na.rm = T), "S&P" = mean(sandp_price_change, na.rm = T))
+      
+      output$avgstockmovementbytargettype = renderGvis({
+        gvisColumnChart(average_stock_movement_target, xvar = "targettype", yvar = c("VIX", "S&P"),
+                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
+      })
+      
+      
   #Transform stockmarket data for ease of graphing
   stockmarket_by_year_db = vix_sandp_db %>% gather(., key = "market", value = "value", -c(date, vix_price_change, sandp_price_change))
   
