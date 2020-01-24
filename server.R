@@ -22,21 +22,13 @@ function(input, output){
   })
   
   ###Graphs visualizing aspects of terrorism events###
-  
-  
-  
-      # Info Boxes showing country with most attacks and average attacks per year
+    ##Total Attacks Tab in Graphs
+      # Info Box showing country with most attacks
       output$maxBox = renderInfoBox({
         max_country = terror_db %>% group_by(., country) %>% summarise(., Total=n()) %>% arrange(., desc(Total)) %>% top_n(., 1)
         valueBox(subtitle = paste("Country with Most Attacks (", max_country[[2]]," attacks total)", sep =""),
-                 value = max_country[[1]], color = "black", icon = icon("long-arrow-alt-up")
-        )
-      })
-      
-      output$avgBox = renderInfoBox({
-        avg_attacks = terror_db %>% group_by(., year(date)) %>% summarise(., Total = n())
-        valueBox(subtitle = "Average Attacks per Year",
-                 value = round(mean(avg_attacks[[2]], na.rm = T),0), color = "black", icon = icon("balance-scale") 
+                 value = tags$h3(max_country[[1]], style = "font-family: 'Georgia', 'Times', 'Times New Roman'"), 
+                 color = "black", icon = icon("long-arrow-alt-up")
         )
       })
       
@@ -47,7 +39,8 @@ function(input, output){
       
       output$attacktypebarchart = renderGvis({
         gvisColumnChart(events_by_type, xvar = "attacktype", yvar = "Count",
-                        options = list(legend = "{position: 'none'}"))
+                        options = list(legend = "{position: 'none'}",
+                                       hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
       })
       
       # Graph showing count of attacks by region
@@ -57,7 +50,8 @@ function(input, output){
       
       output$attackregionbarchart = renderGvis({
         gvisColumnChart(events_by_region, xvar = "region", yvar = "Count",
-                        options = list(legend = "{position: 'none'}"))
+                        options = list(legend = "{position: 'none'}",
+                                       hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
       })
       
       # Graph showing count of attacks by attack target
@@ -67,29 +61,41 @@ function(input, output){
       
       output$attacktargetsbarchart = renderGvis({
         gvisColumnChart(events_by_target, xvar = "targettype", yvar = "Count",
-                        options = list(legend = "{position: 'none'}"))
+                        options = list(legend = "{position: 'none'}",
+                                       hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
       })
       
       
-      ###Yearly Graphs Tab
+    ##Yearly Attacks Tab in Graphs
+      #Info Box showing average yearly attacks
+      output$avgBox = renderInfoBox({
+        avg_attacks = terror_db %>% group_by(., year(date)) %>% summarise(., Total = n())
+        valueBox(subtitle = "Average Attacks per Year",
+                 value = tags$h3(round(mean(avg_attacks[[2]], na.rm = T),0), 
+                                 style = "font-family: 'Georgia', 'Times', 'Times New Roman'"), 
+                 color = "black", icon = icon("balance-scale") 
+        )
+      })
+      
       # Graph showing count of attacks by attack type, segmented by year
       yearly_events_by_type = terror_db %>% 
-        group_by(., Year = year(date), attacktype) %>% 
+        group_by(., Year = format(year(date), big.mark = ""), attacktype) %>% 
         summarise(., Count = n()) %>% 
         spread(., key = attacktype, value = Count)
       
       output$yearlyattacktypelinechart = renderGvis({
         gvisLineChart(yearly_events_by_type,
-                      xvar = "Year",
+                      xvar = format("Year", big.mark = ""),
                       yvar = unique(terror_db$attacktype),
                       options = list(hAxis = "{showTextEvery: 2, format: '0', ticks: data.getDistinctValues(0)}",
-                                     explorer = "{ actions: ['dragToZoom', 'rightClickToReset']}")
+                                     explorer = "{ actions: ['dragToZoom', 'rightClickToReset']}",
+                                     legend = "{position: 'bottom'}")
         )
       })
       
       # Graph showing count of attacks by region, segmented by year
       yearly_events_by_region = terror_db %>% 
-        group_by(., Year = year(date), region) %>% 
+        group_by(., Year = format(year(date), big.mark = ""), region) %>% 
         summarise(., Count = n()) %>% 
         spread(., key = region, value = Count)
       
@@ -98,13 +104,14 @@ function(input, output){
                       xvar = "Year",
                       yvar = unique(terror_db$region),
                       options = list(hAxis = "{showTextEvery: 2, format: '0', ticks: data.getDistinctValues(0)}",
-                                     explorer = "{ actions: ['dragToZoom', 'rightClickToReset']}")
+                                     explorer = "{ actions: ['dragToZoom', 'rightClickToReset']}",
+                                     legend = "{position: 'bottom'}")
         )
       })
       
       # Graph showing count of attacks by attack target, segmented by year
       yearly_events_by_target = terror_db %>% 
-        group_by(., Year = year(date), targettype) %>% 
+        group_by(., Year = format(year(date), big.mark = ""), targettype) %>% 
         summarise(., Count = n()) %>% 
         spread(., key = targettype, value = Count)
       
@@ -113,10 +120,66 @@ function(input, output){
                       xvar = "Year",
                       yvar = unique(terror_db$targettype),
                       options = list(hAxis = "{showTextEvery: 2, format: '0', ticks: data.getDistinctValues(0)}",
-                                     explorer = "{ actions: ['dragToZoom', 'rightClickToReset']}")
+                                     explorer = "{ actions: ['dragToZoom', 'rightClickToReset']}",
+                                     legend = "{position: 'bottom'}")
         )
       })  
-    
+
+    ##Casualties Tab in Graphs
+      output$avgCasualtyBox = renderInfoBox({
+        avg_casualties = terror_db %>% group_by(., year(date)) %>% summarise(., Casualties = sum(nkill, nwound, na.rm=T))
+        valueBox(subtitle = "Average Killed or Wounded per Year",
+                 value = tags$h3(round(mean(avg_casualties[[2]], na.rm = T),0), 
+                                 style = "font-family: 'Georgia', 'Times', 'Times New Roman'"), 
+                 color = "black", icon = icon("balance-scale") 
+        )
+      })
+      
+      #Graph showing total casualties (killed and wounded seperated)
+      total_casualties = terror_db %>% 
+        summarise(., Killed = sum(nkill, na.rm = T), Wounded = sum(nwound, na.rm = T)) %>% 
+        gather(.) %>% 
+        rename(., Type = key, Casualties = value)
+      
+      output$totalcasualtiesbarchart = renderGvis({
+        gvisColumnChart(total_casualties, xvar = "Type", yvar = "Casualties",
+                        options=list(vAxis = "{minValue: 0}"))
+      })
+      
+      #Graph showing total casualties (killed and wounded seperated) divided by region
+      casualties_by_region = terror_db %>% 
+        group_by(., region) %>% 
+        summarise(., Killed = sum(nkill, na.rm = T), Wounded = sum(nwound, na.rm = T))
+      
+      output$regionlcasualtiesbarchart = renderGvis({
+        gvisColumnChart(casualties_by_region, xvar = "region", yvar = c("Killed", "Wounded"),
+                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
+      })
+      
+      #Graph showing total casualties (killed and wounded seperated) divided by attack type
+      casualties_by_type = terror_db %>% 
+        group_by(., attacktype) %>% 
+        summarise(., Killed = sum(nkill, na.rm = T), Wounded = sum(nwound, na.rm = T))
+      
+      output$attacktypecasualtiesbarchart = renderGvis({
+        gvisColumnChart(casualties_by_type, xvar = "attacktype", yvar = c("Killed", "Wounded"),
+                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
+      })
+      
+      #Graph showing yearly casualties (killed and wounded seperated)
+      yearly_casualties_by_target = terror_db %>% 
+        group_by(., Year = format(year(date), big.mark = "")) %>% 
+        summarise(., Killed = sum(nkill, na.rm = T), Wounded = sum(nwound, na.rm = T))
+      
+      output$yearlycasualtieslinechart = renderGvis({
+        gvisLineChart(yearly_casualties_by_target,
+                      xvar = "Year",
+                      yvar = c("Killed", "Wounded"),
+                      options = list(hAxis = "{showTextEvery: 2, format: '0', ticks: data.getDistinctValues(0)}",
+                                     explorer = "{ actions: ['dragToZoom', 'rightClickToReset']}",
+                                     legend = "{position: 'bottom'}")
+                      )
+      }) 
   
   
   ########Volatility & the Stock Market Tab########

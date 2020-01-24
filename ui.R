@@ -53,45 +53,51 @@ dashboardPage(
                     tabPanel("Map",  icon = icon("globe"),
                              fluidRow(leafletOutput("terrorismmap"))
                              ),
-                    tabPanel("Graphs: Total", icon = icon("chart-line"),
-                             box(width = 12,
+                    tabPanel("Attacks: Total", icon = icon("chart-line"),
+                             #box(width = 12,
                                  fluidRow(
                                      column(width = 12, infoBoxOutput("maxBox", width = NULL))),
                                  fluidRow(
-                                     column(12, align = "center",
-                                            tags$h4("Types of Attack: Total"),
-                                            htmlOutput("attacktypebarchart"))),
+                                     box(width = 12, title = "Types of Attack", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                         column(12, align = "center",
+                                            htmlOutput("attacktypebarchart")))),
                                  fluidRow(
-                                     column(12, align = "center",
-                                            tags$br(),
-                                            tags$h4("Attacks by Region: Total"),
-                                            htmlOutput("attackregionbarchart"))),
+                                     box(width = 12, title = "Attacks by Region", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                         column(12, align = "center",
+                                            htmlOutput("attackregionbarchart")))),
                                  fluidRow(
+                                     box(width = 12, title = "Attacks by Target", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
                                      column(12, align = "center",
-                                            tags$br(),
-                                            tags$h4("Targets of Attacks: Total"),
-                                            htmlOutput("attacktargetsbarchart")))
-                                 )
+                                            htmlOutput("attacktargetsbarchart"))))
                              ),
-                    tabPanel("Graphs: Yearly", icon = icon("chart-line"),
-                             box(width = 12,
+                    tabPanel("Attacks: Yearly", icon = icon("chart-line"),
                                  fluidRow(
-                                      column(width = 12, infoBoxOutput("avgBox", width = NULL))),
+                                         column(width = 12, infoBoxOutput("avgBox", width = NULL))),
                                  fluidRow(
-                                     column(12, align = "center",
-                                            tags$h4("Attacks by Region: Yearly"),
-                                            htmlOutput("yearlyattacktypelinechart"))),
+                                     box(width = 12, title = "Attacks by Type", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                         column(12, align = "center", htmlOutput("yearlyattacktypelinechart")))),
                                  fluidRow(
-                                     column(12, align = "center",
-                                            tags$br(),
-                                            tags$h4("Attacks by Region: Yearly"),
-                                            htmlOutput("yearlyattackregionlinechart"))),
+                                     box(width = 12, title = "Attacks by Region", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                         column(12, align = "center", htmlOutput("yearlyattackregionlinechart")))),
                                  fluidRow(
-                                     column(12, align = "center",
-                                            tags$br(),
-                                            tags$h4("Targets of Attacks: Yearly"),
-                                            htmlOutput("yearlyattacktargetslinechart")))
-                                 )
+                                     box(width = 12, title = "Attacks by Target", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                         column(12, align = "center", htmlOutput("yearlyattacktargetslinechart"))))
+                             ),
+                    tabPanel("Casualties", icon = icon("chart-line"),
+                             fluidRow(
+                                 column(width = 12, infoBoxOutput("avgCasualtyBox", width = NULL))),
+                             fluidRow(
+                                 box(width = 12, title = "Total Casualties", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                     column(12, align = "center", htmlOutput("totalcasualtiesbarchart")))),
+                             fluidRow(
+                                 box(width = 12, title = "Casualties by Region", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                     column(12, align = "center", htmlOutput("regionlcasualtiesbarchart")))),
+                             fluidRow(
+                                 box(width = 12, title = "Casualties by Attack Type", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                     column(12, align = "center", htmlOutput("attacktypecasualtiesbarchart")))),
+                             fluidRow(
+                                 box(width = 12, title = "Casualties by Year", collapsible = T, collapsed = T, solidHeader = T, status = "primary",
+                                     column(12, align = "center", htmlOutput("yearlycasualtieslinechart"))))
                              )
                     )
                 ),
