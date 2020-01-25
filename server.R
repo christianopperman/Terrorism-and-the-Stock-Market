@@ -137,11 +137,10 @@ function(input, output){
       #Graph showing total casualties (killed and wounded seperated)
       total_casualties = terror_db %>% 
         summarise(., Killed = sum(nkill, na.rm = T), Wounded = sum(nwound, na.rm = T)) %>% 
-        gather(.) %>% 
-        rename(., Type = key, Casualties = value)
-      
+        mutate(., Casualties = "Casualties") %>% select(., Casualties, Killed, Wounded)
+        
       output$totalcasualtiesbarchart = renderGvis({
-        gvisColumnChart(total_casualties, xvar = "Type", yvar = "Casualties",
+        gvisColumnChart(total_casualties, xvar = "Casualties", yvar = c("Killed", "Wounded"),
                         options=list(vAxis = "{minValue: 0}"))
       })
       
