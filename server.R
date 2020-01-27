@@ -2,26 +2,25 @@ function(input, output){
   
   ########Global Terrorism Tab########
   
-  ###Global map of terrorism events###
-  # Filter dataset by criteria selected by user in the sidebar
-  terrorism_attacks = reactive({
-    terrorism_attacks = terror_db %>% 
-      filter(., between(year(date), input$terrorismAttackYears[1], input$terrorismAttackYears[2]) &
-             attacktype %in% input$terrorismAttackType)
-  })
+  ##Global map of terrorism events
+    # Filter dataset by criteria selected by user in the sidebar
+    terrorism_attacks = reactive({
+      terrorism_attacks = terror_db %>% 
+        filter(., between(year(date), input$terrorismAttackYears[1], input$terrorismAttackYears[2]) &
+               attacktype %in% input$terrorismAttackType)
+    })
+    
+    output$terrorismmap = renderLeaflet({
+      leaflet() %>% 
+        addProviderTiles("Esri.WorldStreetMap") %>% 
+        addCircleMarkers(lng = terrorism_attacks()$longitude, lat = terrorism_attacks()$latitude, 
+                         label = paste(terrorism_attacks()$date, terrorism_attacks()$attacktype, sep = ": "), 
+                         radius = 1, fill = T, 
+                         opacity = 0.3, fillOpacity = 0.3, 
+                         color="red", fillColor="red") %>% 
+        addControl(position = "topright", html = paste0("Number of attacks: ", formatC(nrow(terrorism_attacks()), big.mark=",")))
+    })
   
-  output$terrorismmap = renderLeaflet({
-    leaflet() %>% 
-      addProviderTiles("Esri.WorldStreetMap") %>% 
-      addCircleMarkers(lng = terrorism_attacks()$longitude, lat = terrorism_attacks()$latitude, 
-                       label = paste(terrorism_attacks()$date, terrorism_attacks()$attacktype, sep = ": "), 
-                       radius = 1, fill = T, 
-                       opacity = 0.3, fillOpacity = 0.3, 
-                       color="red", fillColor="red") %>% 
-      addControl(position = "topright", html = paste0("Number of attacks: ", formatC(nrow(terrorism_attacks()), big.mark=",")))
-  })
-  
-  ###Graphs visualizing aspects of terrorism events###
     ##Total Attacks Tab in Graphs
       # Info Box showing country with most attacks
       output$maxBox = renderInfoBox({
@@ -119,7 +118,7 @@ function(input, output){
                       xvar = "Year",
                       yvar = unique(terror_db$targettype),
                       options = list(hAxis = "{showTextEvery: 2, format: '0', ticks: data.getDistinctValues(0)}",
-                                     explorer = "{ actions: ['dragToZoom', 'rightClickToReset']}",
+                                     explorer = "{actions: ['dragToZoom', 'rightClickToReset']}",
                                      legend = "{position: 'bottom'}")
         )
       })  
@@ -174,114 +173,147 @@ function(input, output){
                       xvar = "Year",
                       yvar = c("Killed", "Wounded"),
                       options = list(hAxis = "{showTextEvery: 2, format: '0', ticks: data.getDistinctValues(0)}",
-                                     explorer = "{ actions: ['dragToZoom', 'rightClickToReset']}",
+                                     explorer = "{actions: ['dragToZoom', 'rightClickToReset']}",
                                      legend = "{position: 'bottom'}")
                       )
       }) 
   
+      
+      
   
-  ########Volatility & the Stock Market Tab########
+  ########Terrorism & the Stock Market Tab########
       #Graph showing average change in VIX and S&P500 Indices on a day where the market is open and there is a terrorist attack
       average_stock_movement = terror_db %>% 
-        summarise(., "VIX" = mean(vix_price_change, na.rm = T), "S&P" = mean(sandp_price_change, na.rm = T)) %>% 
-        gather(.) %>% 
-        rename(., Type = key, "Average Change" = value)
+        summarise(., "VIX" = mean(vix_price_change, na.rm = T)/mean(vix_close, na.rm = T),
+                  "S&P" = mean(sandp_price_change, na.rm = T)/mean(sandp_close, na.rm = T)) %>% 
+        mutate(., AvgChange = "Average Change", 
+               VIX.html.tooltip = paste0("VIX Avg. Change: ", as.character(round(VIX*100,4)), "%"),
+               `S&P.html.tooltip` = paste0("S&P Avg. Change: ", as.character(round(`S&P`*100,4)), "%"))
       
       output$avgstockmovement = renderGvis({
-        gvisColumnChart(average_stock_movement, xvar = "Type", yvar = "Average Change")
+        gvisColumnChart(average_stock_movement, xvar = "AvgChange", yvar = c("VIX", "VIX.html.tooltip", "S&P", "S&P.html.tooltip"),
+                        options = list(vAxis = "{format: '#,###.####%'}"))
       })
   
       #Graph showing average change by region in VIX and S&P500 Indices on a day where the market is open and there is a terrorist attack
       average_stock_movement_region = terror_db %>% 
         group_by(., region) %>% 
-        summarise(., "VIX" = mean(vix_price_change, na.rm = T), "S&P" = mean(sandp_price_change, na.rm = T))
+        summarise(., "VIX" = mean(vix_price_change, na.rm = T)/mean(vix_close, na.rm = T),
+                  "S&P" = mean(sandp_price_change, na.rm = T)/mean(sandp_close, na.rm = T)) %>% 
+        mutate(.,
+               VIX.html.tooltip = paste0("VIX Avg. Change: ", as.character(round(VIX*100,4)), "%"),
+               `S&P.html.tooltip` = paste0("S&P Avg. Change: ", as.character(round(`S&P`*100,4)), "%"))
       
       output$avgstockmovementbyregion = renderGvis({
-        gvisColumnChart(average_stock_movement_region, xvar = "region", yvar = c("VIX", "S&P"),
-                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
+        gvisColumnChart(average_stock_movement_region,
+                        xvar = "region",
+                        yvar = c("VIX", "VIX.html.tooltip", "S&P", "S&P.html.tooltip"),
+                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}",
+                                     vAxis = "{format: '#,###.####%'}"))
       })
       
       #Graph showing average change by attack type in VIX and S&P500 Indices on a day where the market is open and there is a terrorist attack
       average_stock_movement_attack = terror_db %>% 
         group_by(., attacktype) %>% 
-        summarise(., "VIX" = mean(vix_price_change, na.rm = T), "S&P" = mean(sandp_price_change, na.rm = T))
+        summarise(., "VIX" = mean(vix_price_change, na.rm = T)/mean(vix_close, na.rm = T),
+                  "S&P" = mean(sandp_price_change, na.rm = T)/mean(sandp_close, na.rm = T)) %>% 
+        mutate(.,
+               VIX.html.tooltip = paste0("VIX Avg. Change: ", as.character(round(VIX*100,4)), "%"),
+               `S&P.html.tooltip` = paste0("S&P Avg. Change: ", as.character(round(`S&P`*100,4)), "%"))
       
       output$avgstockmovementbyattacktype = renderGvis({
-        gvisColumnChart(average_stock_movement_attack, xvar = "attacktype", yvar = c("VIX", "S&P"),
-                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
+        gvisColumnChart(average_stock_movement_attack,
+                        xvar = "attacktype",
+                        yvar = c("VIX", "VIX.html.tooltip", "S&P", "S&P.html.tooltip"),
+                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}",
+                                     vAxis = "{format: '#,###.####%'}"))
       })
       
       #Graph showing average change by target type in VIX and S&P500 Indices on a day where the market is open and there is a terrorist attack
       average_stock_movement_target = terror_db %>% 
         group_by(., targettype) %>% 
-        summarise(., "VIX" = mean(vix_price_change, na.rm = T), "S&P" = mean(sandp_price_change, na.rm = T))
+        summarise(., "VIX" = mean(vix_price_change, na.rm = T)/mean(vix_close, na.rm = T),
+                  "S&P" = mean(sandp_price_change, na.rm = T)/mean(sandp_close, na.rm = T)) %>% 
+        mutate(.,
+               VIX.html.tooltip = paste0("VIX Avg. Change: ", as.character(round(VIX*100,4)), "%"),
+               `S&P.html.tooltip` = paste0("S&P Avg. Change: ", as.character(round(`S&P`*100,4)), "%"))
       
       output$avgstockmovementbytargettype = renderGvis({
-        gvisColumnChart(average_stock_movement_target, xvar = "targettype", yvar = c("VIX", "S&P"),
-                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}"))
+        gvisColumnChart(average_stock_movement_target,
+                        xvar = "targettype",
+                        yvar = c("VIX", "VIX.html.tooltip", "S&P", "S&P.html.tooltip"),
+                        options=list(hAxis = "{maxTextLines: 3, textStyle: {fontSize: 10}}",
+                                     vAxis = "{format: '#,###.####%'}"))
       })
       
       
-  #Transform stockmarket data for ease of graphing
-  stockmarket_by_year_db = vix_sandp_db %>% gather(., key = "market", value = "value", -c(date, vix_price_change, sandp_price_change))
-  
-  #Output line graph showing VIX and S&P over specified time period. Graph has dual y-axis scales
-  output$vix_sandp_graph = renderGvis({
-    gvisAnnotationChart(
-      data = stockmarket_by_year_db,
-      datevar = "date",
-      numvar = "value",
-      idvar = "market",
-      options=list(width = "98%",
-                   scaleColumns = '[0,1]',
-                   scaleType = 'allmaximized')
-    )
-  })
-  
-  output$vix_vs_sandp_scatter = renderGvis({
-    gvisScatterChart(data = select(stockmarket_by_year_db, vix_price_change, sandp_price_change),
-                     options = list(
-                       fontName = "Georgia",
-                       tooltip = "{trigger: 'selection'}",
-                       hAxis = "{title: 'Daily Δ in VIX Closing Price',
-                                 viewWindowMode: 'maximized'}",
-                       vAxis = "{title: 'Daily Δ in S&P500 Closing Price',
-                                 viewWindowMode: 'maximized'}",
-                       series = "{0: {labelInLegend: 'Daily S&P500 Δ'}}",
-                       trendlines = "{0: {color: 'black',
-                       showR2: true,
-                       visibleInLegend: true,
-                       labelInLegend: 'Regression Line',
-                       pointsVisible: false}}",
-                       width = "97%",
-                       height = "400px")
-                     )
-  })
-  
-  ########Data Tab########
-  
-  #Output data tables with filters to increase ease of searching
-  output$terrorismdatatable = DT::renderDT(terror_db %>% select(., 
-                                                           Date = date, 
-                                                           Country = country, 
-                                                           Region = region, 
-                                                           "Province/State" = provstate,
-                                                           City = city,
-                                                           "Attack Type" = attacktype,
-                                                           "Weapon Type" = weapontype,
-                                                           Target = targettype,
-                                                           Perpetrator = perpname,
-                                                           Killed = nkill,
-                                                           Wounded = nwound), 
+      
+      
+  ########Volatility & the Stock Market Tab########    
+    #Transform stockmarket data for ease of graphing
+    stockmarket_by_year_db = vix_sandp_db %>% gather(., key = "market", value = "value", -c(date, vix_price_change, sandp_price_change))
+    
+    #Output line graph showing VIX and S&P over specified time period. Graph has dual y-axis scales
+    output$vix_sandp_graph = renderGvis({
+      gvisAnnotationChart(
+        data = stockmarket_by_year_db,
+        datevar = "date",
+        numvar = "value",
+        idvar = "market",
+        options=list(width = "98%",
+                     scaleColumns = '[0,1]',
+                     scaleType = 'allmaximized')
+      )
+    })
+    
+    #Output scatterplot and regression line showing the relation between the change in VIX and the change in S&P
+    output$vix_vs_sandp_scatter = renderGvis({
+      gvisScatterChart(data = select(stockmarket_by_year_db, vix_price_change, sandp_price_change),
+                       options = list(
+                         fontName = "Georgia",
+                         tooltip = "{trigger: 'selection'}",
+                         hAxis = "{title: 'Daily Δ in VIX Closing Price',
+                                   viewWindowMode: 'maximized'}",
+                         vAxis = "{title: 'Daily Δ in S&P500 Closing Price',
+                                   viewWindowMode: 'maximized'}",
+                         series = "{0: {labelInLegend: 'Daily S&P500 Δ'}}",
+                         trendlines = "{0: {color: 'black',
+                         showR2: true,
+                         visibleInLegend: true,
+                         labelInLegend: 'Regression Line',
+                         pointsVisible: false}}",
+                         width = "97%",
+                         height = "400px")
+                       )
+    })
+
+    
+    
+      
+    ########Data Tab########
+    
+    #Output data tables with filters to increase ease of searching
+    output$terrorismdatatable = DT::renderDT(terror_db %>% select(., 
+                                                             Date = date, 
+                                                             Country = country, 
+                                                             Region = region, 
+                                                             "Province/State" = provstate,
+                                                             City = city,
+                                                             "Attack Type" = attacktype,
+                                                             "Weapon Type" = weapontype,
+                                                             Target = targettype,
+                                                             Perpetrator = perpname,
+                                                             Killed = nkill,
+                                                             Wounded = nwound), 
+                                              filter = list(position = "top", clear = FALSE, plain = FALSE),
+                                              options = list(pageLength = 10))
+    
+    output$sandp500datatable = DT::renderDT(vix_sandp_db %>% select(., date, sandp_close, sandp_price_change),
+                                             filter = list(position = "top", clear = FALSE, plain = FALSE),
+                                             options = list(pageLength = 10))
+    
+    output$vixdatatable = DT::renderDT(vix_sandp_db %>% select(., date, vix_close, vix_price_change),
                                             filter = list(position = "top", clear = FALSE, plain = FALSE),
                                             options = list(pageLength = 10))
-  
-  output$sandp500datatable = DT::renderDT(vix_sandp_db %>% select(., date, sandp_close, sandp_price_change),
-                                           filter = list(position = "top", clear = FALSE, plain = FALSE),
-                                           options = list(pageLength = 10))
-  
-  output$vixdatatable = DT::renderDT(vix_sandp_db %>% select(., date, vix_close, vix_price_change),
-                                          filter = list(position = "top", clear = FALSE, plain = FALSE),
-                                          options = list(pageLength = 10))
-    
-}
+      
+  }
