@@ -170,9 +170,20 @@ dashboardPage(
                                                     of event affects the stock market in different ways.",
                                                     tags$br(),
                                                     tags$br(),
-                                                    "The underlying logic is that terror events effect changes to the VIX 
+                                                    "The underlying thesis was that terror events effect changes to the VIX 
                                                     volatility index, which are in turn negatively correlated with changes 
                                                     in the S&P 500.",
+                                                    tags$br(),
+                                                    tags$br(),
+                                                    "However, upon analysis of the data, it is clear that on average, any
+                                                    given terrorism event does not have a meaningful impact on the VIX index,
+                                                    nor does the S&P500 index meaningfully move in response to terrorism events. 
+                                                    Further investigation indicates that any terrorism event large enough to sway 
+                                                    the market is also large enough to engender a market close.",
+                                                    tags$br(),
+                                                    tags$br(),
+                                                    "In conclusion, it is not recommended to adjust stock portfolios in response to
+                                                    any given terrorism event that fails to close the market.",
                                                     tags$br(),
                                                     tags$br(),
                                                     tags$br(),
